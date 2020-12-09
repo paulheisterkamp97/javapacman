@@ -144,10 +144,15 @@ class Player extends Mover
             setPelletY(getY()/ getGridSize() -1);
         }
     }
-    public void drawPlayer(Graphics g,boolean full){
+    public void drawPlayer(Graphics g){
         Image x = images.get(currDirection);
-        if(full)x = images.get('F');
+        if(getFrameCount()>5||(getX()==getLastX()&&getLastY()==getY()))x = images.get('F');
         g.drawImage(x,getX(),getY(),Color.BLACK,null);
+        if (getFrameCount() >=10){
+            setFrameCount(0);
+        }else {
+            setFrameCount(getFrameCount() + 1);
+        }
     }
 
     public char getCurrDirection() {

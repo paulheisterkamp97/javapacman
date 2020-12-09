@@ -1,3 +1,5 @@
+import java.awt.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,13 +9,14 @@ class Ghost extends Mover
 
     /* The pellet the ghost is on top of */
 
-
+    private Image image1;
+    private Image image2;
     /* The pellet the ghost was last on top of */
     private int lastPelletX;
     private int lastPelletY;
 
     /*Constructor places ghost and updates states*/
-    public Ghost(int x, int y)
+    public Ghost(int x, int y,String file)
     {
         super(x,y);
         setDirection('L');
@@ -21,6 +24,8 @@ class Ghost extends Mover
         setPelletY(x/ getGridSize() -1);
         setLastPelletX(getPelletX());
         setLastPelletY(getPelletY());
+        image1 = Toolkit.getDefaultToolkit().getImage(file);
+        image2 = Toolkit.getDefaultToolkit().getImage(file.replace('0','1'));
     }
 
     /* update pellet status */
@@ -69,8 +74,6 @@ class Ghost extends Mover
                 break;
             }
 
-            newX=getX();
-            newY=getY();
             lookX=getX();
             lookY=getY();
 
@@ -79,25 +82,21 @@ class Ghost extends Mover
             if (random == 1)
             {
                 newDirection = 'L';
-                newX-= getIncrement();
                 lookX-= getIncrement();
             }
             else if (random == 2)
             {
                 newDirection = 'R';
-                newX+= getIncrement();
                 lookX+= getGridSize();
             }
             else if (random == 3)
             {
                 newDirection = 'U';
-                newY-= getIncrement();
                 lookY-= getIncrement();
             }
             else if (random == 4)
             {
                 newDirection = 'D';
-                newY+= getIncrement();
                 lookY+= getGridSize();
             }
             if (newDirection != backwards)
@@ -106,6 +105,19 @@ class Ghost extends Mover
             }
         }
         return newDirection;
+    }
+
+    public void drawGhost(Graphics g){
+        if (getFrameCount()< 5){
+            g.drawImage(image1,getX(),getY(),Color.BLACK,null);
+        }else{
+            g.drawImage(image2,getX(),getY(),Color.BLACK,null);
+        }
+        if (getFrameCount() >=10){
+            setFrameCount(0);
+        }else {
+            setFrameCount(getFrameCount() + 1);
+        }
     }
 
     /* Random move function for ghost */
@@ -140,6 +152,10 @@ class Ghost extends Mover
                     setY(getY()+ getIncrement());
                 break;
         }
+    }
+    public boolean intersects(Player p){
+        if(Math.abs(getX() - p.getX()) < 10&&Math.abs(getY() - p.getY()) < 10 ) return true;
+        return false;
     }
 
     public int getLastPelletX() {

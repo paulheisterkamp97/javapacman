@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,6 +76,11 @@ class Mover
             return true;
         }
         return false;
+    }
+
+    public void overDraw(Graphics g){
+        g.setColor(Color.BLACK);
+        g.fillRect(getLastX(),getLastY(),20,20);
     }
 
     public char getBackwards(){
