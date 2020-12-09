@@ -1,163 +1,50 @@
+import java.awt.*;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 class Player extends Mover
 {
-    /* Direction is used in demoMode, currDirection and desiredDirection are used in non demoMode*/
+    private final HashMap<Character,Image> images = new HashMap<>();
 
-    char currDirection;
-    char desiredDirection;
+    private char currDirection;
+    private char desiredDirection;
 
     /* Keeps track of pellets eaten to determine end of game */
-    int pelletsEaten;
+    private int pelletsEaten;
 
 
     /* Which pellet the pacman is on top of */
 
 
     /* teleport is true when travelling through the teleport tunnels*/
-    boolean teleport;
+    private boolean teleport;
 
     /* Stopped is set when the pacman is not moving or has been killed */
-    boolean stopped = false;
+    private boolean stopped = false;
 
     /* Constructor places pacman in initial location and orientation */
     public Player(int x, int y)
     {
         super(x,y);
-        teleport=false;
-        pelletsEaten=0;
+        setTeleport(false);
+        setPelletsEaten(0);
         setPelletX(x/ getGridSize() -1);
         setPelletY(y/ getGridSize() -1);
-        currDirection='L';
-        desiredDirection='L';
+        setCurrDirection('L');
+        setDesiredDirection('L');
 
+        images.put('R',Toolkit.getDefaultToolkit().getImage("img/pacmanright.jpg"));
+        images.put('L',Toolkit.getDefaultToolkit().getImage("img/pacmanleft.jpg"));
+        images.put('U',Toolkit.getDefaultToolkit().getImage("img/pacmanup.jpg"));
+        images.put('D',Toolkit.getDefaultToolkit().getImage("img/pacmandown.jpg"));
+        images.put('F',Toolkit.getDefaultToolkit().getImage("img/pacman.jpg"));
     }
 
 
-    /* This function is used for demoMode.  It is copied from the Ghost class.  See that for comments */
-    public char newDirection()
-    {
-        int random;
-        char backwards='U';
-        int newX=getX(),newY=getY();
-        int lookX=getX(),lookY=getY();
-        Set<Character> set = new HashSet<Character>();
-        switch(getDirection())
-        {
-            case 'L':
-                backwards='R';
-                break;
-            case 'R':
-                backwards='L';
-                break;
-            case 'U':
-                backwards='D';
-                break;
-            case 'D':
-                backwards='U';
-                break;
-        }
-        char newDirection = backwards;
-        while (newDirection == backwards || !isValidDest(lookX,lookY))
-        {
-            if (set.size()==3)
-            {
-                newDirection=backwards;
-                break;
-            }
-            newX=getX();
-            newY=getY();
-            lookX=getX();
-            lookY=getY();
-            random = (int)(Math.random()*4) + 1;
-            if (random == 1)
-            {
-                newDirection = 'L';
-                newX-= getIncrement();
-                lookX-= getIncrement();
-            }
-            else if (random == 2)
-            {
-                newDirection = 'R';
-                newX+= getIncrement();
-                lookX+= getGridSize();
-            }
-            else if (random == 3)
-            {
-                newDirection = 'U';
-                newY-= getIncrement();
-                lookY-= getIncrement();
-            }
-            else if (random == 4)
-            {
-                newDirection = 'D';
-                newY+= getIncrement();
-                lookY+= getGridSize();
-            }
-            if (newDirection != backwards)
-            {
-                set.add(new Character(newDirection));
-            }
-        }
-        return newDirection;
-    }
 
-    /* This function is used for demoMode.  It is copied from the Ghost class.  See that for comments */
-    public boolean isChoiceDest()
-    {
-        if (  getX()% getGridSize() ==0&& getY()% getGridSize() ==0 )
-        {
-            return true;
-        }
-        return false;
-    }
 
-    /* This function is used for demoMode.  It is copied from the Ghost class.  See that for comments */
-    public void demoMove()
-    {
-        setLastX(getX());
-        setLastY(getY());
-        if (isChoiceDest())
-        {
-            setDirection(newDirection());
-        }
-        switch(getDirection())
-        {
-            case 'L':
-                if ( isValidDest(getX()- getIncrement(),getY()))
-                {
-                    setX(getX()- getIncrement());
-                }
-                else if (getY() == 9* getGridSize() && getX() < 2 * getGridSize())
-                {
-                    setX(getMax() - getGridSize() *1);
-                    teleport = true;
-                }
-                break;
-            case 'R':
-                if ( isValidDest(getX()+ getGridSize(),getY()))
-                {
-                    setX(getX()+ getIncrement());
-                }
-                else if (getY() == 9* getGridSize() && getX() > getMax() - getGridSize() *2)
-                {
-                    setX(1* getGridSize());
-                    teleport=true;
-                }
-                break;
-            case 'U':
-                if ( isValidDest(getX(),getY()- getIncrement()))
-                    setY(getY()- getIncrement());
-                break;
-            case 'D':
-                if ( isValidDest(getX(),getY()+ getGridSize()))
-                    setY(getY()+ getIncrement());
-                break;
-        }
-        currDirection = getDirection();
-        setFrameCount(getFrameCount() + 1);
-    }
 
     /* The move function moves the pacman for one frame in non demo mode */
     public void move()
@@ -170,13 +57,13 @@ class Player extends Mover
         /*Can only turn if we're in center of a grid*/
         if (getX() %20==0 && getY()%20==0 ||
                 /* Or if we're reversing*/
-                (desiredDirection=='L' && currDirection=='R')  ||
-                (desiredDirection=='R' && currDirection=='L')  ||
-                (desiredDirection=='U' && currDirection=='D')  ||
-                (desiredDirection=='D' && currDirection=='U')
+                (getDesiredDirection() =='L' && getCurrDirection() =='R')  ||
+                (getDesiredDirection() =='R' && getCurrDirection() =='L')  ||
+                (getDesiredDirection() =='U' && getCurrDirection() =='D')  ||
+                (getDesiredDirection() =='D' && getCurrDirection() =='U')
         )
         {
-            switch(desiredDirection)
+            switch(getDesiredDirection())
             {
                 case 'L':
                     if ( isValidDest(getX()- getIncrement(),getY()))
@@ -199,7 +86,7 @@ class Player extends Mover
         /* If we haven't moved, then move in the direction the pacman was headed anyway */
         if (getLastX()==getX() && getLastY()==getY())
         {
-            switch(currDirection)
+            switch(getCurrDirection())
             {
                 case 'L':
                     if ( isValidDest(getX()- getIncrement(),getY()))
@@ -207,7 +94,7 @@ class Player extends Mover
                     else if (getY() == 9*gridSize && getX() < 2 * gridSize)
                     {
                         setX(getMax() - gridSize);
-                        teleport = true;
+                        setTeleport(true);
                     }
                     break;
                 case 'R':
@@ -216,7 +103,7 @@ class Player extends Mover
                     else if (getY() == 9*gridSize && getX() > getMax() - gridSize*2)
                     {
                         setX(gridSize);
-                        teleport=true;
+                        setTeleport(true);
                     }
                     break;
                 case 'U':
@@ -233,17 +120,17 @@ class Player extends Mover
         /* If we did change direction, update currDirection to reflect that */
         else
         {
-            currDirection=desiredDirection;
+            setCurrDirection(getDesiredDirection());
         }
 
         /* If we didn't move at all, set the stopped flag */
         if (getLastX() == getX() && getLastY()==getY())
-            stopped=true;
+            setStopped(true);
 
             /* Otherwise, clear the stopped flag and increment the frameCount for animation purposes*/
         else
         {
-            stopped=false;
+            setStopped(false);
             setFrameCount(getFrameCount() + 1);
         }
     }
@@ -256,6 +143,51 @@ class Player extends Mover
             setPelletX(getX()/ getGridSize() -1);
             setPelletY(getY()/ getGridSize() -1);
         }
+    }
+    public void drawPlayer(Graphics g,boolean full){
+        Image x = images.get(currDirection);
+        if(full)x = images.get('F');
+        g.drawImage(x,getX(),getY(),Color.BLACK,null);
+    }
+
+    public char getCurrDirection() {
+        return currDirection;
+    }
+
+    public void setCurrDirection(char currDirection) {
+        this.currDirection = currDirection;
+    }
+
+    public char getDesiredDirection() {
+        return desiredDirection;
+    }
+
+    public void setDesiredDirection(char desiredDirection) {
+        this.desiredDirection = desiredDirection;
+    }
+
+    public int getPelletsEaten() {
+        return pelletsEaten;
+    }
+
+    public void setPelletsEaten(int pelletsEaten) {
+        this.pelletsEaten = pelletsEaten;
+    }
+
+    public boolean isTeleport() {
+        return teleport;
+    }
+
+    public void setTeleport(boolean teleport) {
+        this.teleport = teleport;
+    }
+
+    public boolean isStopped() {
+        return stopped;
+    }
+
+    public void setStopped(boolean stopped) {
+        this.stopped = stopped;
     }
 }
 

@@ -9,7 +9,8 @@ class Ghost extends Mover
 
 
     /* The pellet the ghost was last on top of */
-    int lastPelletX,lastPelletY;
+    private int lastPelletX;
+    private int lastPelletY;
 
     /*Constructor places ghost and updates states*/
     public Ghost(int x, int y)
@@ -18,8 +19,8 @@ class Ghost extends Mover
         setDirection('L');
         setPelletX(x/ getGridSize() -1);
         setPelletY(x/ getGridSize() -1);
-        lastPelletX= getPelletX();
-        lastPelletY= getPelletY();
+        setLastPelletX(getPelletX());
+        setLastPelletY(getPelletY());
     }
 
     /* update pellet status */
@@ -30,8 +31,8 @@ class Ghost extends Mover
         tempY = getY()/ getGridSize() -1;
         if (tempX != getPelletX() || tempY != getPelletY())
         {
-            lastPelletX = getPelletX();
-            lastPelletY = getPelletY();
+            setLastPelletX(getPelletX());
+            setLastPelletY(getPelletY());
             setPelletX(tempX);
             setPelletY(tempY);
         }
@@ -52,25 +53,10 @@ class Ghost extends Mover
     public char newDirection()
     {
         int random;
-        char backwards='U';
+        char backwards=getBackwards();
         int newX=getX(),newY=getY();
         int lookX=getX(),lookY=getY();
         Set<Character> set = new HashSet<Character>();
-        switch(getDirection())
-        {
-            case 'L':
-                backwards='R';
-                break;
-            case 'R':
-                backwards='L';
-                break;
-            case 'U':
-                backwards='D';
-                break;
-            case 'D':
-                backwards='U';
-                break;
-        }
 
         char newDirection = backwards;
         /* While we still haven't found a valid direction */
@@ -154,5 +140,21 @@ class Ghost extends Mover
                     setY(getY()+ getIncrement());
                 break;
         }
+    }
+
+    public int getLastPelletX() {
+        return lastPelletX;
+    }
+
+    public void setLastPelletX(int lastPelletX) {
+        this.lastPelletX = lastPelletX;
+    }
+
+    public int getLastPelletY() {
+        return lastPelletY;
+    }
+
+    public void setLastPelletY(int lastPelletY) {
+        this.lastPelletY = lastPelletY;
     }
 }

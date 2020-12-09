@@ -15,32 +15,8 @@ import java.io.*;
 /*This board class contains the player, ghosts, pellets, and most of the game logic.*/
 public class Board extends JPanel
 {
-  /* Initialize the images*/
-  /* For JAR File*/
-  /*
-  Image pacmanImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/pacman.jpg"));
-  Image pacmanUpImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/pacmanup.jpg")); 
-  Image pacmanDownImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/pacmandown.jpg")); 
-  Image pacmanLeftImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/pacmanleft.jpg")); 
-  Image pacmanRightImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/pacmanright.jpg")); 
-  Image ghost10 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost10.jpg")); 
-  Image ghost20 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost20.jpg")); 
-  Image ghost30 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost30.jpg")); 
-  Image ghost40 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost40.jpg")); 
-  Image ghost11 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost11.jpg")); 
-  Image ghost21 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost21.jpg")); 
-  Image ghost31 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost31.jpg")); 
-  Image ghost41 = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/ghost41.jpg")); 
-  Image titleScreenImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/titleScreen.jpg")); 
-  Image gameOverImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/gameOver.jpg")); 
-  Image winScreenImage = Toolkit.getDefaultToolkit().getImage(Pacman.class.getResource("img/winScreen.jpg"));
-  */
-  /* For NOT JAR file*/
-  Image pacmanImage = Toolkit.getDefaultToolkit().getImage("img/pacman.jpg"); 
-  Image pacmanUpImage = Toolkit.getDefaultToolkit().getImage("img/pacmanup.jpg"); 
-  Image pacmanDownImage = Toolkit.getDefaultToolkit().getImage("img/pacmandown.jpg"); 
-  Image pacmanLeftImage = Toolkit.getDefaultToolkit().getImage("img/pacmanleft.jpg"); 
-  Image pacmanRightImage = Toolkit.getDefaultToolkit().getImage("img/pacmanright.jpg"); 
+
+
   Image ghost10 = Toolkit.getDefaultToolkit().getImage("img/ghost10.jpg"); 
   Image ghost20 = Toolkit.getDefaultToolkit().getImage("img/ghost20.jpg"); 
   Image ghost30 = Toolkit.getDefaultToolkit().getImage("img/ghost30.jpg"); 
@@ -383,7 +359,7 @@ public class Board extends JPanel
       sounds.nomNomStop();
 
       /* Draw the pacman */
-      g.drawImage(pacmanImage,player.getX(),player.getY(),Color.BLACK,null);
+      player.drawPlayer(g,true);
       g.setColor(Color.BLACK);
       
       /* Kill the pacman */
@@ -609,7 +585,7 @@ public class Board extends JPanel
       sounds.nomNom();
       
       /* Increment pellets eaten value to track for end game */
-      player.pelletsEaten++;
+      player.setPelletsEaten(player.getPelletsEaten() + 1);
 
       /* Delete the pellet*/
       pellets[player.getPelletX()][player.getPelletY()]=false;
@@ -628,7 +604,7 @@ public class Board extends JPanel
         g.drawString("Score: "+(currScore)+"\t High Score: "+highScore,20,10);
 
       /* If this was the last pellet */
-      if (player.pelletsEaten == 173)
+      if (player.getPelletsEaten() == 173)
       {
         /*Demo mode can't get a high score */
         if (!demo)
@@ -648,7 +624,7 @@ public class Board extends JPanel
     }
 
     /* If we moved to a location without pellets, stop the sounds */
-    else if ( (player.getPelletX() != lastPelletEatenX || player.getPelletY() != lastPelletEatenY ) || player.stopped)
+    else if ( (player.getPelletX() != lastPelletEatenX || player.getPelletY() != lastPelletEatenY ) || player.isStopped())
     {
       /* Stop any pacman eating sounds */
       sounds.nomNomStop();
@@ -656,14 +632,14 @@ public class Board extends JPanel
 
 
     /* Replace pellets that have been run over by ghosts */
-    if ( pellets[ghost1.lastPelletX][ghost1.lastPelletY])
-      fillPellet(ghost1.lastPelletX,ghost1.lastPelletY,g);
-    if ( pellets[ghost2.lastPelletX][ghost2.lastPelletY])
-      fillPellet(ghost2.lastPelletX,ghost2.lastPelletY,g);
-    if ( pellets[ghost3.lastPelletX][ghost3.lastPelletY])
-      fillPellet(ghost3.lastPelletX,ghost3.lastPelletY,g);
-    if ( pellets[ghost4.lastPelletX][ghost4.lastPelletY])
-      fillPellet(ghost4.lastPelletX,ghost4.lastPelletY,g);
+    if ( pellets[ghost1.getLastPelletX()][ghost1.getLastPelletY()])
+      fillPellet(ghost1.getLastPelletX(), ghost1.getLastPelletY(),g);
+    if ( pellets[ghost2.getLastPelletX()][ghost2.getLastPelletY()])
+      fillPellet(ghost2.getLastPelletX(), ghost2.getLastPelletY(),g);
+    if ( pellets[ghost3.getLastPelletX()][ghost3.getLastPelletY()])
+      fillPellet(ghost3.getLastPelletX(), ghost3.getLastPelletY(),g);
+    if ( pellets[ghost4.getLastPelletX()][ghost4.getLastPelletY()])
+      fillPellet(ghost4.getLastPelletX(), ghost4.getLastPelletY(),g);
 
 
     /*Draw the ghosts */
@@ -693,7 +669,7 @@ public class Board extends JPanel
     if (player.getFrameCount() < 5)
     {
       /* Draw mouth closed */
-      g.drawImage(pacmanImage,player.getX(),player.getY(),Color.BLACK,null);
+      player.drawPlayer(g,true);
     }
     else
     {
@@ -701,21 +677,7 @@ public class Board extends JPanel
       if (player.getFrameCount() >=10)
         player.setFrameCount(0);
 
-      switch(player.currDirection)
-      {
-        case 'L':
-           g.drawImage(pacmanLeftImage,player.getX(),player.getY(),Color.BLACK,null);
-           break;     
-        case 'R':
-           g.drawImage(pacmanRightImage,player.getX(),player.getY(),Color.BLACK,null);
-           break;     
-        case 'U':
-           g.drawImage(pacmanUpImage,player.getX(),player.getY(),Color.BLACK,null);
-           break;     
-        case 'D':
-           g.drawImage(pacmanDownImage,player.getX(),player.getY(),Color.BLACK,null);
-           break;     
-      }
+      player.drawPlayer(g,false);
     }
 
     /* Draw the border around the game in case it was overwritten by ghost movement or something */

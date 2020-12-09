@@ -10,14 +10,14 @@ public class Pacman extends JFrame implements MouseListener, KeyListener
 { 
 
   /* These timers are used to kill title, game over, and victory screens after a set idle period (5 seconds)*/
-  long titleTimer = -1;
-  long timer = -1;
+  private long titleTimer = -1;
+  private long timer = -1;
 
   /* Create a new board */
-  Board b=new Board(); 
+  private Board b=new Board();
 
   /* This timer is used to do request new frames be drawn*/
-  javax.swing.Timer frameTimer;
+  private javax.swing.Timer frameTimer;
  
 
   /* This constructor creates the entire game essentially */   
@@ -66,10 +66,10 @@ public class Pacman extends JFrame implements MouseListener, KeyListener
   */
   public void repaint()
   {
-    if (b.player.teleport)
+    if (b.player.isTeleport())
     {
       b.repaint(b.player.getLastX()-20,b.player.getLastY()-20,80,80);
-      b.player.teleport=false;
+      b.player.setTeleport(false);
     }
     b.repaint(0,0,600,20);
     b.repaint(0,420,600,40);
@@ -148,14 +148,8 @@ public class Pacman extends JFrame implements MouseListener, KeyListener
     {
       /* The pacman player has two functions, demoMove if we're in demo mode and move if we're in
          user playable mode.  Call the appropriate one here */
-      if (b.demo)
-      {
-        b.player.demoMove();
-      }
-      else
-      {
-        b.player.move();
-      }
+      b.player.move();
+
 
       /* Also move the ghosts, and update the pellet states */
       b.ghost1.move(); 
@@ -183,9 +177,9 @@ public class Pacman extends JFrame implements MouseListener, KeyListener
       }
 
       /* Move all game elements back to starting positions and orientations */
-      b.player.currDirection='L';
+      b.player.setCurrDirection('L');
       b.player.setDirection('L');
-      b.player.desiredDirection='L';
+      b.player.setDesiredDirection('L');
       b.player.setX(200);
       b.player.setY(300);
       b.ghost1.setX( 180);
@@ -242,16 +236,16 @@ public class Pacman extends JFrame implements MouseListener, KeyListener
     switch(e.getKeyCode())
     {
       case KeyEvent.VK_LEFT:
-       b.player.desiredDirection='L';
+       b.player.setDesiredDirection('L');
        break;     
       case KeyEvent.VK_RIGHT:
-       b.player.desiredDirection='R';
+       b.player.setDesiredDirection('R');
        break;     
       case KeyEvent.VK_UP:
-       b.player.desiredDirection='U';
+       b.player.setDesiredDirection('U');
        break;     
       case KeyEvent.VK_DOWN:
-       b.player.desiredDirection='D';
+       b.player.setDesiredDirection('D');
        break;     
     }
 

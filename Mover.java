@@ -1,7 +1,12 @@
+import java.util.HashMap;
+import java.util.Map;
+
 class Mover
 {
     /* Framecount is used to count animation frames*/
     private int frameCount=0;
+
+    private static final Map<Character,Character> backwards = Map.of('L','R', 'R', 'L','U','D','D','U');
 
     /* State contains the game map */
     private boolean[][] state;
@@ -72,6 +77,10 @@ class Mover
         return false;
     }
 
+    public char getBackwards(){
+        return backwards.get(direction);
+    }
+
     public int getLastX() {
         return lastX;
     }
@@ -96,9 +105,7 @@ class Mover
         this.x = x;
     }
 
-    public int getY() {
-        return y;
-    }
+    public int getY() { return y; }
 
     public void setY(int y) {
         this.y = y;
@@ -152,19 +159,11 @@ class Mover
         this.increment = increment;
     }
 
-    public int getPelletX() {
-        return pelletX;
-    }
+    public int getPelletX() {return pelletX; }
 
-    public void setPelletX(int pelletX) {
-        this.pelletX = pelletX;
-    }
+    public void setPelletX(int pelletX) { this.pelletX = pelletX; }
 
-    public int getPelletY() {
-        return pelletY;
-    }
+    public int getPelletY() { return pelletY; }
 
-    public void setPelletY(int pelletY) {
-        this.pelletY = pelletY;
-    }
+    public void setPelletY(int pelletY) { this.pelletY = pelletY; }
 }
