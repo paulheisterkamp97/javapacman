@@ -1,6 +1,5 @@
 /* Drew Schuster */
 import java.awt.*;
-import javax.imageio.*;
 import javax.swing.JPanel;
 import java.lang.Math;
 import java.util.*;
@@ -8,501 +7,9 @@ import java.io.*;
 
 
 /* Both Player and Ghost inherit Mover.  Has generic functions relevant to both*/
-class Mover
-{
-  /* Framecount is used to count animation frames*/
-  int frameCount=0;
 
-  /* State contains the game map */
-  boolean[][] state;
-
-  /* gridSize is the size of one square in the game.
-     max is the height/width of the game.
-     increment is the speed at which the object moves,
-     1 increment per move() call */
-  int gridSize;
-  int max;
-  int increment;
-
-  /* Generic constructor */
-  public Mover()
-  {
-    gridSize=20;
-    increment = 4;
-    max = 400;
-    state = new boolean[20][20];
-    for(int i =0;i<20;i++)
-    {
-      for(int j=0;j<20;j++)
-      {
-        state[i][j] = false;
-      }
-    }
-  }
-
-  /* Updates the state information */
-  public void updateState(boolean[][] state)
-  {
-    for(int i =0;i<20;i++)
-    {
-      for(int j=0;j<20;j++)
-      {
-        this.state[i][j] = state[i][j];
-      }
-    }
-  }
-
-  /* Determines if a set of coordinates is a valid destination.*/
-  public boolean isValidDest(int x, int y)
-  {
-    /* The first statements check that the x and y are inbounds.  The last statement checks the map to
-       see if it's a valid location */
-    if ((((x)%20==0) || ((y)%20)==0) && 20<=x && x<400 && 20<= y && y<400 && state[x/20-1][y/20-1] )
-    {
-      return true;
-    }
-    return false;
-  } 
-}
 
 /* This is the pacman object */
-class Player extends Mover
-{
-  /* Direction is used in demoMode, currDirection and desiredDirection are used in non demoMode*/ 
-  char direction;
-  char currDirection;
-  char desiredDirection;
-
-  /* Keeps track of pellets eaten to determine end of game */
-  int pelletsEaten;
-
-  /* Last location */
-  int lastX;
-  int lastY;
- 
-  /* Current location */
-  int x;
-  int y;
- 
-  /* Which pellet the pacman is on top of */
-  int pelletX;
-  int pelletY;
-
-  /* teleport is true when travelling through the teleport tunnels*/
-  boolean teleport;
-  
-  /* Stopped is set when the pacman is not moving or has been killed */
-  boolean stopped = false;
-
-  /* Constructor places pacman in initial location and orientation */
-  public Player(int x, int y)
-  {
-
-    teleport=false;
-    pelletsEaten=0;
-    pelletX = x/gridSize-1;
-    pelletY = y/gridSize-1;
-    this.lastX=x;
-    this.lastY=y;
-    this.x = x;
-    this.y = y;
-    currDirection='L';
-    desiredDirection='L';
-  }
-
-
-  /* This function is used for demoMode.  It is copied from the Ghost class.  See that for comments */
-  public char newDirection()
-  { 
-     int random;
-     char backwards='U';
-     int newX=x,newY=y;
-     int lookX=x,lookY=y;
-     Set<Character> set = new HashSet<Character>();
-    switch(direction)
-    {
-      case 'L':
-         backwards='R';
-         break;     
-      case 'R':
-         backwards='L';
-         break;     
-      case 'U':
-         backwards='D';
-         break;     
-      case 'D':
-         backwards='U';
-         break;     
-    }
-     char newDirection = backwards;
-     while (newDirection == backwards || !isValidDest(lookX,lookY))
-     {
-       if (set.size()==3)
-       {
-         newDirection=backwards;
-         break;
-       }
-       newX=x;
-       newY=y;
-       lookX=x;
-       lookY=y;
-       random = (int)(Math.random()*4) + 1;
-       if (random == 1)
-       {
-         newDirection = 'L';
-         newX-=increment; 
-         lookX-= increment;
-       }
-       else if (random == 2)
-       {
-         newDirection = 'R';
-         newX+=increment; 
-         lookX+= gridSize;
-       }
-       else if (random == 3)
-       {
-         newDirection = 'U';
-         newY-=increment; 
-         lookY-=increment;
-       }
-       else if (random == 4)
-       {
-         newDirection = 'D';
-         newY+=increment; 
-         lookY+=gridSize;
-       }
-       if (newDirection != backwards)
-       {
-         set.add(new Character(newDirection));
-       }
-     } 
-     return newDirection;
-  }
-
-  /* This function is used for demoMode.  It is copied from the Ghost class.  See that for comments */
-  public boolean isChoiceDest()
-  {
-    if (  x%gridSize==0&& y%gridSize==0 )
-    {
-      return true;
-    }
-    return false;
-  }
-
-  /* This function is used for demoMode.  It is copied from the Ghost class.  See that for comments */
-  public void demoMove()
-  {
-    lastX=x;
-    lastY=y;
-    if (isChoiceDest())
-    {
-      direction = newDirection();
-    }
-    switch(direction)
-    {
-      case 'L':
-         if ( isValidDest(x-increment,y))
-         {
-           x -= increment;
-         }
-         else if (y == 9*gridSize && x < 2 * gridSize)
-         {
-           x = max - gridSize*1;
-           teleport = true; 
-         }
-         break;     
-      case 'R':
-         if ( isValidDest(x+gridSize,y))
-         {
-           x+= increment;
-         }
-         else if (y == 9*gridSize && x > max - gridSize*2)
-         {
-           x = 1*gridSize;
-           teleport=true;
-         }
-         break;     
-      case 'U':
-         if ( isValidDest(x,y-increment))
-           y-= increment;
-         break;     
-      case 'D':
-         if ( isValidDest(x,y+gridSize))
-           y+= increment;
-         break;     
-    }
-    currDirection = direction;
-    frameCount ++;
-  }
-
-  /* The move function moves the pacman for one frame in non demo mode */
-  public void move()
-  {
-    int gridSize=20;
-    lastX=x;
-    lastY=y;
-     
-    /* Try to turn in the direction input by the user */
-    /*Can only turn if we're in center of a grid*/
-    if (x %20==0 && y%20==0 ||
-       /* Or if we're reversing*/
-       (desiredDirection=='L' && currDirection=='R')  ||
-       (desiredDirection=='R' && currDirection=='L')  ||
-       (desiredDirection=='U' && currDirection=='D')  ||
-       (desiredDirection=='D' && currDirection=='U')
-       )
-    {
-      switch(desiredDirection)
-      {
-        case 'L':
-           if ( isValidDest(x-increment,y))
-             x -= increment;
-           break;     
-        case 'R':
-           if ( isValidDest(x+gridSize,y))
-             x+= increment;
-           break;     
-        case 'U':
-           if ( isValidDest(x,y-increment))
-             y-= increment;
-           break;     
-        case 'D':
-           if ( isValidDest(x,y+gridSize))
-             y+= increment;
-           break;     
-      }
-    }
-    /* If we haven't moved, then move in the direction the pacman was headed anyway */
-    if (lastX==x && lastY==y)
-    {
-      switch(currDirection)
-      {
-        case 'L':
-           if ( isValidDest(x-increment,y))
-             x -= increment;
-           else if (y == 9*gridSize && x < 2 * gridSize)
-           {
-             x = max - gridSize*1;
-             teleport = true; 
-           }
-           break;     
-        case 'R':
-           if ( isValidDest(x+gridSize,y))
-             x+= increment;
-           else if (y == 9*gridSize && x > max - gridSize*2)
-           {
-             x = 1*gridSize;
-             teleport=true;
-           }
-           break;     
-        case 'U':
-           if ( isValidDest(x,y-increment))
-             y-= increment;
-           break;     
-        case 'D':
-           if ( isValidDest(x,y+gridSize))
-             y+= increment;
-           break;     
-      }
-    }
-
-    /* If we did change direction, update currDirection to reflect that */
-    else
-    {
-      currDirection=desiredDirection;
-    }
-   
-    /* If we didn't move at all, set the stopped flag */    
-    if (lastX == x && lastY==y)
-      stopped=true;
-  
-    /* Otherwise, clear the stopped flag and increment the frameCount for animation purposes*/
-    else
-    {
-      stopped=false;
-      frameCount ++;
-    }
-  }
-
-  /* Update what pellet the pacman is on top of */
-  public void updatePellet()
-  {
-    if (x%gridSize ==0 && y%gridSize == 0)
-    {
-    pelletX = x/gridSize-1;
-    pelletY = y/gridSize-1;
-    }
-  } 
-}
-
-/* Ghost class controls the ghost. */
-class Ghost extends Mover
-{ 
-  /* Direction ghost is heading */
-  char direction;
-
-  /* Last ghost location*/
-  int lastX;
-  int lastY;
-
-  /* Current ghost location */
-  int x;
-  int y;
-
-  /* The pellet the ghost is on top of */
-  int pelletX,pelletY;
-
-  /* The pellet the ghost was last on top of */
-  int lastPelletX,lastPelletY;
-
-  /*Constructor places ghost and updates states*/
-  public Ghost(int x, int y)
-  {
-    direction='L';
-    pelletX=x/gridSize-1;
-    pelletY=x/gridSize-1;
-    lastPelletX=pelletX;
-    lastPelletY=pelletY;
-    this.lastX = x;
-    this.lastY = y;
-    this.x = x;
-    this.y = y;
-  }
-
-  /* update pellet status */
-  public void updatePellet()
-  {
-    int tempX,tempY;
-    tempX = x/gridSize-1;
-    tempY = y/gridSize-1;
-    if (tempX != pelletX || tempY != pelletY)
-    {
-      lastPelletX = pelletX;
-      lastPelletY = pelletY;
-      pelletX=tempX;
-      pelletY = tempY;
-    }
-     
-  } 
- 
-  /* Determines if the location is one where the ghost has to make a decision*/ 
-  public boolean isChoiceDest()
-  {
-    if (  x%gridSize==0&& y%gridSize==0 )
-    {
-      return true;
-    }
-    return false;
-  }
-
-  /* Chooses a new direction randomly for the ghost to move */
-  public char newDirection()
-  { 
-    int random;
-    char backwards='U';
-    int newX=x,newY=y;
-    int lookX=x,lookY=y;
-    Set<Character> set = new HashSet<Character>();
-    switch(direction)
-    {
-      case 'L':
-         backwards='R';
-         break;     
-      case 'R':
-         backwards='L';
-         break;     
-      case 'U':
-         backwards='D';
-         break;     
-      case 'D':
-         backwards='U';
-         break;     
-    }
-
-    char newDirection = backwards;
-    /* While we still haven't found a valid direction */
-    while (newDirection == backwards || !isValidDest(lookX,lookY))
-    {
-      /* If we've tried every location, turn around and break the loop */
-      if (set.size()==3)
-      {
-        newDirection=backwards;
-        break;
-      }
-
-      newX=x;
-      newY=y;
-      lookX=x;
-      lookY=y;
-      
-      /* Randomly choose a direction */
-      random = (int)(Math.random()*4) + 1;
-      if (random == 1)
-      {
-        newDirection = 'L';
-        newX-=increment; 
-        lookX-= increment;
-      }
-      else if (random == 2)
-      {
-        newDirection = 'R';
-        newX+=increment; 
-        lookX+= gridSize;
-      }
-      else if (random == 3)
-      {
-        newDirection = 'U';
-        newY-=increment; 
-        lookY-=increment;
-      }
-      else if (random == 4)
-      {
-        newDirection = 'D';
-        newY+=increment; 
-        lookY+=gridSize;
-      }
-      if (newDirection != backwards)
-      {
-        set.add(new Character(newDirection));
-      }
-    } 
-    return newDirection;
-  }
-
-  /* Random move function for ghost */
-  public void move()
-  {
-    lastX=x;
-    lastY=y;
- 
-    /* If we can make a decision, pick a new direction randomly */
-    if (isChoiceDest())
-    {
-      direction = newDirection();
-    }
-    
-    /* If that direction is valid, move that way */
-    switch(direction)
-    {
-      case 'L':
-         if ( isValidDest(x-increment,y))
-           x -= increment;
-         break;     
-      case 'R':
-         if ( isValidDest(x+gridSize,y))
-           x+= increment;
-         break;     
-      case 'U':
-         if ( isValidDest(x,y-increment))
-           y-= increment;
-         break;     
-      case 'D':
-         if ( isValidDest(x,y+gridSize))
-           y+= increment;
-         break;     
-    }
-  }
-}
 
 
 /*This board class contains the player, ghosts, pellets, and most of the game logic.*/
@@ -876,19 +383,19 @@ public class Board extends JPanel
       sounds.nomNomStop();
 
       /* Draw the pacman */
-      g.drawImage(pacmanImage,player.x,player.y,Color.BLACK,null);
+      g.drawImage(pacmanImage,player.getX(),player.getY(),Color.BLACK,null);
       g.setColor(Color.BLACK);
       
       /* Kill the pacman */
       if (dying == 4)
-        g.fillRect(player.x,player.y,20,7);
+        g.fillRect(player.getX(),player.getY(),20,7);
       else if ( dying == 3)
-        g.fillRect(player.x,player.y,20,14);
+        g.fillRect(player.getX(),player.getY(),20,14);
       else if ( dying == 2)
-        g.fillRect(player.x,player.y,20,20); 
+        g.fillRect(player.getX(),player.getY(),20,20);
       else if ( dying == 1)
       {
-        g.fillRect(player.x,player.y,20,20); 
+        g.fillRect(player.getX(),player.getY(),20,20);
       }
      
       /* Take .1 seconds on each frame of death, and then take 2 seconds
@@ -997,7 +504,7 @@ public class Board extends JPanel
       /* Send the game map to player and all ghosts */
       player.updateState(state);
       /* Don't let the player go in the ghost box*/
-      player.state[9][7]=false; 
+      player.getState()[9][7]=false;
       ghost1.updateState(state);
       ghost2.updateState(state);
       ghost3.updateState(state);
@@ -1040,30 +547,30 @@ public class Board extends JPanel
     }
     
     /* Drawing optimization */
-    g.copyArea(player.x-20,player.y-20,80,80,0,0);
-    g.copyArea(ghost1.x-20,ghost1.y-20,80,80,0,0);
-    g.copyArea(ghost2.x-20,ghost2.y-20,80,80,0,0);
-    g.copyArea(ghost3.x-20,ghost3.y-20,80,80,0,0);
-    g.copyArea(ghost4.x-20,ghost4.y-20,80,80,0,0);
+    g.copyArea(player.getX()-20,player.getY()-20,80,80,0,0);
+    g.copyArea(ghost1.getX()-20,ghost1.getY()-20,80,80,0,0);
+    g.copyArea(ghost2.getX()-20,ghost2.getY()-20,80,80,0,0);
+    g.copyArea(ghost3.getX()-20,ghost3.getY()-20,80,80,0,0);
+    g.copyArea(ghost4.getX()-20,ghost4.getY()-20,80,80,0,0);
     
 
 
     /* Detect collisions */
-    if (player.x == ghost1.x && Math.abs(player.y-ghost1.y) < 10)
+    if (player.getX() == ghost1.getX() && Math.abs(player.getY()-ghost1.getY()) < 10)
       oops=true;
-    else if (player.x == ghost2.x && Math.abs(player.y-ghost2.y) < 10)
+    else if (player.getX() == ghost2.getX() && Math.abs(player.getY()-ghost2.getY()) < 10)
       oops=true;
-    else if (player.x == ghost3.x && Math.abs(player.y-ghost3.y) < 10)
+    else if (player.getX() == ghost3.getX() && Math.abs(player.getY()-ghost3.getY()) < 10)
       oops=true;
-    else if (player.x == ghost4.x && Math.abs(player.y-ghost4.y) < 10)
+    else if (player.getX() == ghost4.getX() && Math.abs(player.getY()-ghost4.getY()) < 10)
       oops=true;
-    else if (player.y == ghost1.y && Math.abs(player.x-ghost1.x) < 10)
+    else if (player.getY() == ghost1.getY() && Math.abs(player.getX()-ghost1.getX()) < 10)
       oops=true;
-    else if (player.y == ghost2.y && Math.abs(player.x-ghost2.x) < 10)
+    else if (player.getY() == ghost2.getY() && Math.abs(player.getX()-ghost2.getX()) < 10)
       oops=true;
-    else if (player.y == ghost3.y && Math.abs(player.x-ghost3.x) < 10)
+    else if (player.getY() == ghost3.getY() && Math.abs(player.getX()-ghost3.getX()) < 10)
       oops=true;
-    else if (player.y == ghost4.y && Math.abs(player.x-ghost4.x) < 10)
+    else if (player.getY() == ghost4.getY() && Math.abs(player.getX()-ghost4.getX()) < 10)
       oops=true;
 
     /* Kill the pacman */
@@ -1086,17 +593,17 @@ public class Board extends JPanel
 
     /* Delete the players and ghosts */
     g.setColor(Color.BLACK);
-    g.fillRect(player.lastX,player.lastY,20,20);
-    g.fillRect(ghost1.lastX,ghost1.lastY,20,20);
-    g.fillRect(ghost2.lastX,ghost2.lastY,20,20);
-    g.fillRect(ghost3.lastX,ghost3.lastY,20,20);
-    g.fillRect(ghost4.lastX,ghost4.lastY,20,20);
+    g.fillRect(player.getLastX(),player.getLastY(),20,20);
+    g.fillRect(ghost1.getLastX(),ghost1.getLastY(),20,20);
+    g.fillRect(ghost2.getLastX(),ghost2.getLastY(),20,20);
+    g.fillRect(ghost3.getLastX(),ghost3.getLastY(),20,20);
+    g.fillRect(ghost4.getLastX(),ghost4.getLastY(),20,20);
 
     /* Eat pellets */
-    if ( pellets[player.pelletX][player.pelletY] && New!=2 && New !=3)
+    if ( pellets[player.getPelletX()][player.getPelletY()] && New!=2 && New !=3)
     {
-      lastPelletEatenX = player.pelletX;
-      lastPelletEatenY = player.pelletY;
+      lastPelletEatenX = player.getPelletX();
+      lastPelletEatenY = player.getPelletY();
 
       /* Play eating sound */
       sounds.nomNom();
@@ -1105,7 +612,7 @@ public class Board extends JPanel
       player.pelletsEaten++;
 
       /* Delete the pellet*/
-      pellets[player.pelletX][player.pelletY]=false;
+      pellets[player.getPelletX()][player.getPelletY()]=false;
 
       /* Increment the score */
       currScore += 50;
@@ -1141,7 +648,7 @@ public class Board extends JPanel
     }
 
     /* If we moved to a location without pellets, stop the sounds */
-    else if ( (player.pelletX != lastPelletEatenX || player.pelletY != lastPelletEatenY ) || player.stopped)
+    else if ( (player.getPelletX() != lastPelletEatenX || player.getPelletY() != lastPelletEatenY ) || player.stopped)
     {
       /* Stop any pacman eating sounds */
       sounds.nomNomStop();
@@ -1160,53 +667,53 @@ public class Board extends JPanel
 
 
     /*Draw the ghosts */
-    if (ghost1.frameCount < 5)
+    if (ghost1.getFrameCount() < 5)
     {
       /* Draw first frame of ghosts */
-      g.drawImage(ghost10,ghost1.x,ghost1.y,Color.BLACK,null);
-      g.drawImage(ghost20,ghost2.x,ghost2.y,Color.BLACK,null);
-      g.drawImage(ghost30,ghost3.x,ghost3.y,Color.BLACK,null);
-      g.drawImage(ghost40,ghost4.x,ghost4.y,Color.BLACK,null);
-      ghost1.frameCount++;
+      g.drawImage(ghost10,ghost1.getX(),ghost1.getY(),Color.BLACK,null);
+      g.drawImage(ghost20,ghost2.getX(),ghost2.getY(),Color.BLACK,null);
+      g.drawImage(ghost30,ghost3.getX(),ghost3.getY(),Color.BLACK,null);
+      g.drawImage(ghost40,ghost4.getX(),ghost4.getY(),Color.BLACK,null);
+      ghost1.setFrameCount(ghost1.getFrameCount() + 1);
     }
     else
     {
       /* Draw second frame of ghosts */
-      g.drawImage(ghost11,ghost1.x,ghost1.y,Color.BLACK,null);
-      g.drawImage(ghost21,ghost2.x,ghost2.y,Color.BLACK,null);
-      g.drawImage(ghost31,ghost3.x,ghost3.y,Color.BLACK,null);
-      g.drawImage(ghost41,ghost4.x,ghost4.y,Color.BLACK,null);
-      if (ghost1.frameCount >=10)
-        ghost1.frameCount=0;
+      g.drawImage(ghost11,ghost1.getX(),ghost1.getY(),Color.BLACK,null);
+      g.drawImage(ghost21,ghost2.getX(),ghost2.getY(),Color.BLACK,null);
+      g.drawImage(ghost31,ghost3.getX(),ghost3.getY(),Color.BLACK,null);
+      g.drawImage(ghost41,ghost4.getX(),ghost4.getY(),Color.BLACK,null);
+      if (ghost1.getFrameCount() >=10)
+        ghost1.setFrameCount(0);
       else
-        ghost1.frameCount++;
+        ghost1.setFrameCount(ghost1.getFrameCount() + 1);
     }
 
     /* Draw the pacman */
-    if (player.frameCount < 5)
+    if (player.getFrameCount() < 5)
     {
       /* Draw mouth closed */
-      g.drawImage(pacmanImage,player.x,player.y,Color.BLACK,null);
+      g.drawImage(pacmanImage,player.getX(),player.getY(),Color.BLACK,null);
     }
     else
     {
       /* Draw mouth open in appropriate direction */
-      if (player.frameCount >=10)
-        player.frameCount=0;
+      if (player.getFrameCount() >=10)
+        player.setFrameCount(0);
 
       switch(player.currDirection)
       {
         case 'L':
-           g.drawImage(pacmanLeftImage,player.x,player.y,Color.BLACK,null);
+           g.drawImage(pacmanLeftImage,player.getX(),player.getY(),Color.BLACK,null);
            break;     
         case 'R':
-           g.drawImage(pacmanRightImage,player.x,player.y,Color.BLACK,null);
+           g.drawImage(pacmanRightImage,player.getX(),player.getY(),Color.BLACK,null);
            break;     
         case 'U':
-           g.drawImage(pacmanUpImage,player.x,player.y,Color.BLACK,null);
+           g.drawImage(pacmanUpImage,player.getX(),player.getY(),Color.BLACK,null);
            break;     
         case 'D':
-           g.drawImage(pacmanDownImage,player.x,player.y,Color.BLACK,null);
+           g.drawImage(pacmanDownImage,player.getX(),player.getY(),Color.BLACK,null);
            break;     
       }
     }
